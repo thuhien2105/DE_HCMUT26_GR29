@@ -1,0 +1,58 @@
+# Cấu hình miền nghiệp vụ: Autonomous Greenhouse Challenge 2nd edition (WUR Bleiswijk, 2019-2020)
+site:
+  site_id: 1
+  site_code: WUR-BLEISWIJK
+  site_name: Wageningen University & Research - Greenhouse Horticulture
+  country: Netherlands
+  latitude: 52.03
+  longitude: 4.53
+
+crop:
+  crop_id: 1
+  species: Solanum lycopersicum (cherry tomato)
+  cultivar: Axiany
+
+# Cửa sổ thí nghiệm. Bản ghi nằm ngoài cửa sổ bị cách ly (quarantine), ví dụ Production của
+# Reference có ngày 14/02/2019 (sai năm).
+experiment:
+  start_date: "2019-12-16"
+  end_date: "2020-05-31"
+  climate_interval_minutes: 5
+
+# Mỗi team điều khiển một khoang (compartment) riêng = một growing cycle.
+# floor_area_m2: diện tích khoang thí nghiệm theo mô tả của WUR (96 m2/khoang).
+teams:
+  - { team_code: AICU,          team_name: AICU,            control_type: AI,     compartment_code: C01, floor_area_m2: 96 }
+  - { team_code: Automatoes,    team_name: Automatoes,      control_type: AI,     compartment_code: C02, floor_area_m2: 96 }
+  - { team_code: Digilog,       team_name: Digilog,         control_type: AI,     compartment_code: C03, floor_area_m2: 96 }
+  - { team_code: IUACAAS,       team_name: IUACAAS,         control_type: AI,     compartment_code: C04, floor_area_m2: 96 }
+  - { team_code: Reference,     team_name: Reference,       control_type: Manual, compartment_code: C05, floor_area_m2: 96 }
+  - { team_code: TheAutomators, team_name: The Automators,  control_type: AI,     compartment_code: C06, floor_area_m2: 96 }
+
+# Ánh xạ tên file CSV gốc -> bảng bronze
+source_files:
+  greenhouseclimate: greenhouse_climate
+  weather: weather
+  resources: resources
+  production: production
+  grodansens: grodan_sens
+  cropparameters: crop_parameters
+  labanalysis: lab_analysis
+  tomquality: tom_quality
+
+# Ngưỡng hợp lý vật lý (ngoài ngưỡng -> NULL + ghi nhận dq_issue)
+plausible_ranges:
+  tair: [-5, 50]
+  rh: [0, 100]
+  co2: [0, 3000]
+  ec_drain: [0, 15]
+  ph_drain: [0, 14]
+  tout: [-30, 45]
+  rhout: [0, 100]
+  heat_mj_m2: [0, 20]
+  elec_high_kwh_m2: [0, 5]
+  elec_low_kwh_m2: [0, 5]
+  irr_l_m2: [0, 20]
+  drain_l_m2: [0, 20]
+  prod_a_kg_m2: [0, 5]
+  prod_b_kg_m2: [0, 5]

@@ -1,0 +1,15 @@
+# Dữ liệu (tải từ Kaggle) và kết quả sinh ra khi chạy pipeline
+data/raw/*
+!data/raw/.gitkeep
+data/sample_raw/
+data/lake/
+data/bench/
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+spark-warehouse/
+metastore_db/
+derby.log
+.ipynb_checkpoints/
+.DS_Store

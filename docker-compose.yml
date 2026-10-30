@@ -1,0 +1,90 @@
+name: de29-greenhouse
+
+x-spark-image: &spark-image
+  image: de29/spark:3.5.3
+  build:
+    context: ./docker/spark
+
+x-ch-env: &ch-env
+  CH_HOST: clickhouse
+  CH_PORT: "8123"
+  CH_USER: de29
+  CH_PASSWORD: de29pass
+
+services:
+  # ---------------- Data management: ClickHouse (Bronze / Silver / Gold) ----------------
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.8
+    environment:
+      CLICKHOUSE_USER: de29
+      CLICKHOUSE_PASSWORD: de29pass
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: "1"
+    ports:
+      - "8123:8123"   # HTTP
+      - "9000:9000"   # native
+    volumes:
+      - ch_data:/var/lib/clickhouse
+      # ClickHouse đọc trực tiếp Parquet do Spark ghi ra qua table function file()
+      - ./data:/var/lib/clickhouse/user_files/data:ro
+    ulimits:
+      nofile: { soft: 262144, hard: 262144 }
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8123/ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  # ---------------- Data processing: Apache Spark standalone cluster ----------------
+  spark-master:
+    <<: *spark-image
+    command: ["spark-class", "org.apache.spark.deploy.master.Master", "--host", "spark-master"]
+    ports:
+      - "8080:8080"   # Spark master UI
+      - "7077:7077"
+    volumes:
+      - ./data:/opt/project/data
+
+  spark-worker:
+    <<: *spark-image
+    command: ["spark-class", "org.apache.spark.deploy.worker.Worker", "spark://spark-master:7077"]
+    environment:
+      SPARK_WORKER_CORES: "2"
+      SPARK_WORKER_MEMORY: "2g"
+    volumes:
+      - ./data:/opt/project/data
+    depends_on: [spark-master]
+    deploy:
+      replicas: 2
+
+  # Driver: chạy các job pipeline / validate / benchmark (docker compose run --rm pipeline ...)
+  pipeline:
+    <<: *spark-image
+    profiles: ["jobs"]
+    environment:
+      <<: *ch-env
+      SPARK_MASTER_URL: spark://spark-master:7077
+      SPARK_EXECUTOR_MEMORY: 1536m
+    ports:
+      - "4040:4040"   # Spark application UI khi job đang chạy
+    volumes:
+      - ./:/opt/project
+    depends_on:
+      clickhouse: { condition: service_healthy }
+      spark-master: { condition: service_started }
+
+  # ---------------- Application: Streamlit dashboard ----------------
+  dashboard:
+    image: de29/dashboard:1.0
+    build:
+      context: ./docker/app
+    environment:
+      <<: *ch-env
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./:/opt/project
+    depends_on:
+      clickhouse: { condition: service_healthy }
+
+volumes:
+  ch_data:

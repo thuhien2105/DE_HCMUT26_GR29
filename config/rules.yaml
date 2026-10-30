@@ -1,0 +1,44 @@
+# Business rules có phiên bản. Thay đổi ngưỡng => thêm version mới, KHÔNG sửa version cũ.
+# Gold layer nạp bảng gold.dim_rule_version từ file này; các view BR tính cho mọi version,
+# dashboard cho phép chọn version để so sánh (tái tính theo rule version, không chạy lại Spark).
+rule_versions:
+  - rule_version: v1
+    is_active: true
+    description: Ngưỡng chuẩn theo slide nhóm 29 (tuần 5)
+    # BR-01 Tuân thủ khí hậu
+    temp_below_heat_sp_c: 1.0     # Tair < heating setpoint - 1.0 °C  => thiếu nhiệt
+    temp_above_vent_sp_c: 2.0     # Tair > ventilation setpoint + 2.0 °C => quá nhiệt
+    co2_abs_dev_ppm: 100          # |CO2air - co2 setpoint| > 100 ppm => lệch CO2
+    # BR-02 Sử dụng nước
+    rainy_day_min_hours: 1.0      # ngày có >= 1 giờ mưa => ngày mưa
+    # BR-03 Ổn định dinh dưỡng (dung dịch drain)
+    ec_min: 2.0
+    ec_max: 5.0
+    ph_min: 5.5
+    ph_max: 6.5
+    # BR-05 Giờ stress của cây
+    stress_heat_c: 30.0
+    stress_cold_c: 12.0
+    stress_rh_high: 95.0
+    # BR-06 Rủi ro nấm bệnh (proxy Botrytis): RH >= 85% và 15 <= Tair <= 25 °C
+    disease_rh_min: 85.0
+    disease_t_min: 15.0
+    disease_t_max: 25.0
+
+  - rule_version: v2
+    is_active: false
+    description: Bộ ngưỡng chặt hơn (dùng để thử độ nhạy của kết quả)
+    temp_below_heat_sp_c: 0.5
+    temp_above_vent_sp_c: 1.0
+    co2_abs_dev_ppm: 75
+    rainy_day_min_hours: 0.5
+    ec_min: 2.5
+    ec_max: 4.5
+    ph_min: 5.6
+    ph_max: 6.3
+    stress_heat_c: 28.0
+    stress_cold_c: 14.0
+    stress_rh_high: 92.0
+    disease_rh_min: 80.0
+    disease_t_min: 15.0
+    disease_t_max: 25.0
